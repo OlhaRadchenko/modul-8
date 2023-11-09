@@ -1,36 +1,52 @@
 from datetime import date, timedelta
 
 def get_birthdays_per_week(users):
-    birthdays_per_week = {'Monday': [], 'Tuesday': [], 'Wednesday': [], 'Thursday': [], 'Friday': []}
+    if not users:
+        return {}
 
-    today = date.today()
+    current_date = date.today()
 
-    start_of_week = today - timedelta(days=today.weekday())
+    weekdays = {
+        0: 'Monday',
+        1: 'Tuesday',
+        2: 'Wednesday',
+        3: 'Thursday',
+        4: 'Friday',
+        5: 'Saturday',
+        6: 'Sunday'
+    }
+
+    birthdays_per_week = {day: [] for day in weekdays.values()}
 
     for user in users:
         name = user['name']
         birthday = user['birthday']
 
-        if birthday.replace(year=today.year) < today:
-            birthday = birthday.replace(year=today.year + 1) 
+        next_birthday = birthday.replace(year=current_date.year)
+        if next_birthday < current_date:
+            next_birthday = next_birthday.replace(year=current_date.year + 1)
 
-        day_of_week = birthday.strftime('%A')
+        if current_date <= next_birthday <= current_date + timedelta(days=7):
+            day_of_week = next_birthday.weekday()
+            day_name = weekdays[day_of_week]
 
-        birthdays_per_week[day_of_week].append(name)
+            if day_name in ['Saturday', 'Sunday']:
+                day_name = 'Monday'
 
-    for i in range(today.weekday()):
-        day = (start_of_week + timedelta(days=i)).strftime('%A')
-        birthdays_per_week[day] += birthdays_per_week[day_of_week]
-        birthdays_per_week[day_of_week] = []
+            birthdays_per_week[day_name].append(name)
+
+    birthdays_per_week = {day: names for day, names in birthdays_per_week.items() if names}
 
     return birthdays_per_week
+
 
 if __name__ == "__main__":
     users = [{'name': 'Bill', 'birthday': date(1990, 11, 5)},
              {'name': 'Jan', 'birthday': date(1992, 11, 7)},
-             {'name': 'Kim', 'birthday': date(1995, 11, 9)}]
+             {'name': 'Kim', 'birthday': date(1995, 11, 9)},
+             {'name': 'Tom', 'birthday': date(1991, 11, 12)}]
 
     result = get_birthdays_per_week(users)
-
     for day_name, names in result.items():
         print(f"{day_name}: {', '.join(names)}")
+
